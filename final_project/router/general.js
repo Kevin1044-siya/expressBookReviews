@@ -1,27 +1,20 @@
 const express = require('express');
+const axios = require('axios');
 let router = express.Router();
 
 let books = require("./booksdb.js");
 
-const getBooks = async () => {
-  return new Promise((resolve, reject) => {
-    resolve(books);
-  });
-};
-
 // Task 1: Get all books
-router.get('/', async (req, res) => {
-  const bookList = await getBooks();
-  res.send(JSON.stringify(bookList, null, 4));
+router.get('/', (req, res) => {
+  res.send(JSON.stringify(books, null, 4));
 });
 
 // Task 2: Get book by ISBN
 router.get('/isbn/:isbn', (req, res) => {
   const isbn = req.params.isbn;
-  const book = books[isbn];
 
-  if (book) {
-    res.send(JSON.stringify(book, null, 4));
+  if (books[isbn]) {
+    res.send(JSON.stringify(books[isbn], null, 4));
   } else {
     res.status(404).json({ message: "Book not found" });
   }
@@ -55,7 +48,7 @@ router.get('/title/:title', (req, res) => {
   res.send(JSON.stringify(result, null, 4));
 });
 
-// Task 5: Get book reviews
+// Task 5: Get book review
 router.get('/review/:isbn', (req, res) => {
   const isbn = req.params.isbn;
 
@@ -66,60 +59,55 @@ router.get('/review/:isbn', (req, res) => {
   }
 });
 
-// Task 10: Get all books using async callback
+
+// ----------------------
+// Async Tasks with Axios
+// ----------------------
+
+// Task 10: Get all books using async/await
 router.get('/async/books', async (req, res) => {
-  const bookList = await getBooks();
-  res.send(JSON.stringify(bookList, null, 4));
-});
-
-// Task 11: Search by ISBN using promise
-router.get('/async/isbn/:isbn', async (req, res) => {
-  const isbn = req.params.isbn;
-
-  const book = await new Promise((resolve, reject) => {
-    resolve(books[isbn]);
-  });
-
-  if (book) {
-    res.send(JSON.stringify(book, null, 4));
-  } else {
-    res.status(404).json({ message: "Book not found" });
+  try {
+    const response = await axios.get('http://localhost:5000/');
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 });
 
-// Task 12: Search by author using async
+// Task 11: Search by ISBN using Axios
+router.get('/async/isbn/:isbn', async (req, res) => {
+  const isbn = req.params.isbn;
+
+  try {
+    const response = await axios.get(`http://localhost:5000/isbn/${isbn}`);
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// Task 12: Search by Author using Axios
 router.get('/async/author/:author', async (req, res) => {
   const author = req.params.author;
 
-  const result = await new Promise((resolve, reject) => {
-    let booksByAuthor = {};
-    for (let isbn in books) {
-      if (books[isbn].author === author) {
-        booksByAuthor[isbn] = books[isbn];
-      }
-    }
-    resolve(booksByAuthor);
-  });
-
-  res.send(JSON.stringify(result, null, 4));
+  try {
+    const response = await axios.get(`http://localhost:5000/author/${author}`);
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
 
-// Task 13: Search by title using async
+// Task 13: Search by Title using Axios
 router.get('/async/title/:title', async (req, res) => {
   const title = req.params.title;
 
-  const result = await new Promise((resolve, reject) => {
-    let booksByTitle = {};
-    for (let isbn in books) {
-      if (books[isbn].title === title) {
-        booksByTitle[isbn] = books[isbn];
-      }
-    }
-    resolve(booksByTitle);
-  });
-
-  res.send(JSON.stringify(result, null, 4));
+  try {
+    const response = await axios.get(`http://localhost:5000/title/${title}`);
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
 
 module.exports.general = router;
-module.exports.general = public_users;
